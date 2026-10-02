@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+  <title>MGRS Protocol · Monoclonal Gammopathy of Renal Significance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #f0f6fc;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .container { max-width: 1400px; width: 100%; }
+
+    .protocol-header {
+      background: linear-gradient(145deg, #2c1810, #5c2d0e);
+      color: white;
+      padding: 1.8rem 2rem;
+      border-radius: 28px 28px 20px 20px;
+      box-shadow: 0 12px 24px rgba(0,20,40,0.25);
+      margin-bottom: 2rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .protocol-header h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .protocol-header h1 i {
+      background: rgba(255,255,255,0.12);
+      padding: 10px 14px;
+      border-radius: 60px;
+      font-size: 1.4rem;
+    }
+    .badge-2025 {
+      background: #ffd966;
+      color: #1a3b4e;
+      font-weight: 700;
+      font-size: 0.85rem;
+      padding: 0.4rem 1.2rem;
+      border-radius: 60px;
+    }
+
+    .step-card {
+      background: white;
+      border-radius: 28px;
+      padding: 1.8rem 2rem;
+      margin-bottom: 1.8rem;
+      box-shadow: 0 6px 20px rgba(0,30,60,0.06);
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+    .step-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #3e1a08;
+      margin-bottom: 1.2rem;
+      border-bottom: 2px solid #f0e6e0;
+      padding-bottom: 0.7rem;
+    }
+    .step-title i {
+      background: #f0e0d6;
+      color: #7b3f1a;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      font-size: 1.1rem;
+    }
+
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1rem 0; }
+    .grid-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin: 1rem 0; }
+    @media (max-width: 900px) { .grid-2col, .grid-3col { grid-template-columns: 1fr; } }
+    @media (max-width: 700px) { .protocol-header { flex-direction: column; gap: 12px; } .chart-container { height: 300px !important; } }
+
+    .options-grid { display: flex; flex-wrap: wrap; gap: 0.7rem 1rem; margin: 0.3rem 0; }
+    .option-btn {
+      background: white;
+      border: 2px solid #d4c4b8;
+      padding: 0.6rem 1.3rem;
+      border-radius: 60px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      color: #5c2d0e;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .option-btn:hover { background: #faf0e8; border-color: #b8957e; }
+    .option-btn.active {
+      background: #7b3f1a;
+      border-color: #7b3f1a;
+      color: white;
+      box-shadow: 0 4px 12px rgba(90,50,20,0.3);
+    }
+
+    .info-box {
+      margin-top: 1rem;
+      padding: 1rem 1.4rem;
+      border-radius: 1rem;
+      background: #fdf8f5;
+      border-left: 6px solid #b8957e;
+      line-height: 1.6;
+      font-size: 0.9rem;
+    }
+    .info-box strong { color: #5c2d0e; }
+    .info-box.warning { background: #fff8f0; border-left-color: #d4842e; }
+    .info-box.success { background: #f0f8f2; border-left-color: #2d7a3e; }
+    .info-box.danger { background: #fef5f5; border-left-color: #c0392b; }
+    .info-box.purple { background: #f8f5fc; border-left-color: #7b4fa0; }
+    .info-box.important { background: #fffef5; border-left-color: #c0a030; border-width: 4px; }
+
+    .treatment-panel {
+      background: #fdf8f5;
+      border-radius: 1.2rem;
+      padding: 1.2rem 1.6rem;
+      margin: 1rem 0 0.2rem;
+      border: 1px solid #e8d5c8;
+    }
+    .treatment-panel h4 {
+      font-weight: 600;
+      color: #5c2d0e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+      margin-bottom: 0.8rem;
+    }
+    .treatment-panel ul { list-style: none; padding-left: 0; }
+    .treatment-panel li {
+      padding: 0.3rem 0 0.3rem 1.8rem;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="%237b3f1a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>') left 0.4rem center no-repeat;
+      background-size: 0.9rem;
+      margin-bottom: 0.2rem;
+      color: #4a2810;
+      line-height: 1.5;
+      font-size: 0.9rem;
+    }
+
+    .pill {
+      display: inline-block;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.2rem 0.9rem;
+      border-radius: 60px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .pill.red { background: #c0392b; }
+    .pill.orange { background: #d4842e; }
+    .pill.green { background: #2d7a3e; }
+    .pill.blue { background: #3a6b9e; }
+    .pill.purple { background: #7b4fa0; }
+    .pill.teal { background: #1a7a6e; }
+    .pill.brown { background: #6b3a1f; }
+    .pill.gold { background: #b8860b; }
+    .pill.gray { background: #95a5a6; }
+
+    .tag {
+      background: #f0e0d6;
+      border-radius: 30px;
+      padding: 0.2rem 0.8rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #5c2d0e;
+      display: inline-block;
+      margin: 0.2rem;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.83rem;
+      margin: 0.8rem 0;
+    }
+    .comparison-table th {
+      background: #5c2d0e;
+      color: white;
+      padding: 0.7rem 0.5rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.78rem;
+    }
+    .comparison-table th:first-child { background: #3e1a08; width: 18%; }
+    .comparison-table td {
+      padding: 0.5rem;
+      border-bottom: 1px solid #e8d5c8;
+      line-height: 1.5;
+      vertical-align: top;
+      font-size: 0.82rem;
+    }
+    .comparison-table tr:nth-child(even) { background: #fdf8f5; }
+    .comparison-table .feature-col { font-weight: 600; color: #3e1a08; background: #f8f0e8; }
+
+    .table-responsive { overflow-x: auto; margin: 1rem 0; }
+
+    .section-label {
+      font-weight: 700;
+      color: #5c2d0e;
+      margin: 1.2rem 0 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.05rem;
+    }
+
+    .btn-reset {
+      background: transparent;
+      border: 2px solid #d4c4b8;
+      color: #5c2d0e;
+      padding: 0.5rem 1.5rem;
+      border-radius: 60px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+    }
+    .btn-reset:hover { background: #faf0e8; }
+    .btn-primary {
+      background: #7b3f1a;
+      color: white;
+      border: none;
+      padding: 0.6rem 1.8rem;
+      border-radius: 60px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-primary:hover { background: #5c2d0e; }
+
+    .chart-container { position: relative; height: 400px; width: 100%; margin: 1rem 0; }
+    .gantt-container { position: relative; width: 100%; margin: 1rem 0; height: 420px; }
+
+    .med-edit-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin: 0.5rem 0; }
+    .med-edit-table th { background: #5c2d0e; color: white; padding: 0.7rem 0.6rem; text-align: left; font-weight: 600; font-size: 0.82rem; }
+    .med-edit-table td { padding: 0.5rem 0.6rem; border-bottom: 1px solid #e8d5c8; }
+    .med-edit-table tr:nth-child(even) { background: #fdf8f5; }
+    .med-edit-table input[type="number"] { width: 60px; padding: 4px 6px; border: 1px solid #d4c4b8; border-radius: 6px; text-align: center; }
+    .med-edit-table input[type="date"] { padding: 4px 6px; border: 1px solid #d4c4b8; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 0.8rem; }
+
+    .med-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .med-table th { background: #5c2d0e; color: white; padding: 0.6rem 0.5rem; text-align: left; font-size: 0.8rem; position: sticky; top: 0; z-index: 1; }
+    .med-table td { padding: 0.5rem; border-bottom: 1px solid #e8d5c8; font-size: 0.8rem; line-height: 1.4; }
+    .med-table tr:nth-child(even) { background: #fdf8f5; }
+    .med-table-scroll { max-height: 500px; overflow-y: auto; border: 1px solid #e8d5c8; border-radius: 12px; }
+
+    .followup-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+    .followup-table th { background: #5c2d0e; color: white; padding: 0.7rem 0.6rem; text-align: left; font-size: 0.85rem; }
+    .followup-table td { padding: 0.6rem; border-bottom: 1px solid #e8d5c8; font-size: 0.85rem; }
+    .followup-table tr:nth-child(even) { background: #fdf8f5; }
+
+    .algorithm-flow { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: center; margin: 1rem 0; font-size: 0.82rem; }
+    .algo-box {
+      background: white;
+      border: 2px solid #7b3f1a;
+      border-radius: 14px;
+      padding: 0.7rem 0.9rem;
+      text-align: center;
+      min-width: 100px;
+      font-weight: 600;
+      font-size: 0.78rem;
+    }
+    .algo-box.decision { background: #fffef5; border-color: #c0a030; border-style: dashed; }
+    .algo-box.treatment { background: #f0f8f2; border-color: #2d7a3e; }
+    .algo-box.danger { background: #fef5f5; border-color: #c0392b; }
+    .algo-arrow { font-size: 1.3rem; color: #7b3f1a; font-weight: bold; }
+
+    .footnote {
+      font-size: 0.85rem;
+      color: #7b5a3e;
+      margin-top: 1.2rem;
+      text-align: right;
+      border-top: 1px solid #e8d5c8;
+      padding-top: 0.8rem;
+    }
+    hr { margin: 1.2rem 0; border: 0; height: 1px; background: #e8d5c8; }
+
+    /* Treatment start box */
+    .treatment-start-box {
+      background: linear-gradient(145deg, #fdf8f5, #faf0e8);
+      border: 2px solid #b8957e;
+      border-radius: 1.2rem;
+      padding: 1.2rem 1.6rem;
+      margin: 0 0 1.2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      align-items: end;
+    }
+    .treatment-start-box .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .treatment-start-box label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #5c2d0e;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .treatment-start-box input[type="date"],
+    .treatment-start-box input[type="text"] {
+      padding: 0.55rem 0.8rem;
+      border: 2px solid #d4c4b8;
+      border-radius: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      color: #3e1a08;
+      background: white;
+    }
+    .treatment-start-box input[type="date"]:focus,
+    .treatment-start-box input[type="text"]:focus {
+      outline: none;
+      border-color: #7b3f1a;
+      box-shadow: 0 0 0 3px rgba(123,63,26,0.12);
+    }
+    .treatment-start-box .duration-display {
+      background: white;
+      border: 2px dashed #b8957e;
+      border-radius: 10px;
+      padding: 0.55rem 0.8rem;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #7b3f1a;
+      text-align: center;
+    }
+    .treatment-start-box .status-pill {
+      display: inline-block;
+      padding: 0.55rem 1rem;
+      border-radius: 10px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-align: center;
+    }
+    .treatment-start-box .status-pill.active { background: #2d7a3e; color: white; }
+    .treatment-start-box .status-pill.not-started { background: #d4842e; color: white; }
+    .treatment-start-box .status-pill.completed { background: #3a6b9e; color: white; }
+    .treatment-start-box .status-pill.not-set { background: #95a5a6; color: white; }
+
+    .txn-status-cell {
+      font-size: 0.78rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .txn-status-cell.started { color: #2d7a3e; }
+    .txn-status-cell.not-started { color: #95a5a6; }
+
+    /* NEW: Citation superscript */
+    .cite {
+      color: #7b3f1a;
+      font-weight: 700;
+      font-size: 0.7em;
+      vertical-align: super;
+      text-decoration: none;
+      margin-left: 1px;
+      cursor: pointer;
+    }
+    .cite:hover { color: #c0392b; text-decoration: underline; }
+
+    /* NEW: Reference list */
+    .ref-list {
+      counter-reset: refcounter;
+      list-style: none;
+      padding-left: 0;
+      margin-top: 1rem;
+    }
+    .ref-list li {
+      counter-increment: refcounter;
+      padding: 0.5rem 0.5rem 0.5rem 2.6rem;
+      position: relative;
+      border-bottom: 1px solid #f0e6e0;
+      font-size: 0.84rem;
+      line-height: 1.55;
+      color: #4a2810;
+    }
+    .ref-list li::before {
+      content: "[" counter(refcounter) "]";
+      position: absolute;
+      left: 0;
+      top: 0.5rem;
+      font-weight: 700;
+      color: #7b3f1a;
+      font-size: 0.82rem;
+      width: 2rem;
+      text-align: right;
+    }
+    .ref-list li:target {
+      background: #fff8e8;
+      border-radius: 8px;
+      box-shadow: 0 0 0 2px #ffd966;
+    }
+    .ref-list a {
+      color: #3a6b9e;
+      text-decoration: none;
+      word-break: break-all;
+    }
+    .ref-list a:hover { text-decoration: underline; }
+
+    /* NEW: Evidence Hub */
+    .ev-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    .ev-card {
+      background: #fdf8f5;
+      border-radius: 1rem;
+      padding: 1rem 1.2rem;
+      border-left: 5px solid #b8957e;
+    }
+    .ev-card h5 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #5c2d0e;
+      margin-bottom: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ev-card p, .ev-card ul {
+      font-size: 0.82rem;
+      line-height: 1.55;
+      color: #4a2810;
+    }
+    .ev-card ul { list-style: none; padding-left: 0; }
+    .ev-card ul li {
+      padding-left: 1rem;
+      position: relative;
+      margin-bottom: 0.25rem;
+    }
+    .ev-card ul li::before {
+      content: "•";
+      position: absolute;
+      left: 0;
+      color: #7b3f1a;
+      font-weight: bold;
+    }
+    .ev-card.consensus { border-left-color: #2d7a3e; }
+    .ev-card.contested { border-left-color: #c0392b; background: #fef5f5; }
+    .ev-card.emerging { border-left-color: #7b4fa0; background: #f8f5fc; }
+
+    .bio-trigger-flow {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      justify-content: center;
+      margin: 1.2rem 0;
+    }
+    .bio-trigger-item {
+      background: #fffef5;
+      border: 2px dashed #c0a030;
+      border-radius: 12px;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #5c2d0e;
+      text-align: center;
+      min-width: 110px;
+    }
+    .bio-trigger-or {
+      font-weight: 800;
+      color: #c0392b;
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="protocol-header">
+    <h1><i class="fas fa-flask"></i> MGRS Protocol</h1>
+    <span class="badge-2025"><i class="fas fa-calendar-check"></i> IKMG 2019 · BSH 2025 · NCCN v2.2027 · European 2026</span>
+  </div>
+
+  <!-- STEP 1: WHAT IS MGRS? -->
+  <div class="step-card">
+    <div class="step-title"><i class="fas fa-book-open"></i> 1. MGRS · Definition & Core Concepts</div>
+
+    <div class="grid-2col">
+      <div>
+        <div class="section-label"><i class="fas fa-lightbulb"></i> The MGRS Paradigm</div>
+        <div class="info-box important">
+          <p><strong>MGRS Definition (IKMG 2019):</strong><a href="#ref4" class="cite">[4]</a></p>
+          <p style="margin-top:0.3rem;">A <strong>clonal proliferative disorder</strong> that produces a <strong>nephrotoxic monoclonal immunoglobulin</strong> but does <strong>not meet criteria for overt multiple myeloma or lymphoproliferative disorder</strong> requiring immediate chemotherapy.</p>
+          <p style="margin-top:0.5rem;"><strong>Key Distinction from MGUS:</strong></p>
+          <ul style="margin-left:1.2rem; line-height:1.7; font-size:0.85rem;">
+            <li><strong>MGUS:</strong> Monoclonal protein present but <em>not causing end-organ damage</em> (observation only)</li>
+            <li><strong>MGRS:</strong> Monoclonal protein <em>causing kidney injury</em> → requires clone-directed therapy</li>
+            <li><strong>MGRS ≠ MGUS + kidney disease:</strong> Must prove the monoclonal Ig is <em>causing</em> the renal lesion</li>
+          </ul>
+          <p style="margin-top:0.6rem; padding-top:0.5rem; border-top:1px dashed #d4c4b8;"><strong>European 2026 nuance:</strong> <em>Absence</em> of a serum M-protein or a bone marrow clone does <strong>not</strong> exclude MGRS — the diagnosis rests on expert nephropathology (LM + IF + EM).<a href="#ref1" class="cite">[1]</a></p>
+        </div>
+        <div class="section-label" style="margin-top:1rem;"><i class="fas fa-dna"></i> Clone Types</div>
+        <div class="info-box">
+          <ul style="margin-left:1.2rem; line-height:1.8; font-size:0.85rem;">
+            <li><strong>B-cell clone:</strong> Produces intact immunoglobulin (IgG, IgA, IgM) ± light chains</li>
+            <li><strong>Plasma cell clone:</strong> Produces light chains only (κ or λ) ± intact Ig</li>
+            <li><strong>Lymphoplasmacytic clone:</strong> IgM-producing (Waldenström spectrum)</li>
+            <li><strong>CLL clone:</strong> CD5+ B-cells producing monoclonal Ig</li>
+          </ul>
+        </div>
+      </div>
+      <div>
+        <div class="section-label"><i class="fas fa-exclamation-triangle"></i> Why MGRS Matters</div>
+        <div class="info-box danger">
+          <ul style="margin-left:1.2rem; line-height:1.8; font-size:0.85rem;">
+            <li><strong>Kidney survival:</strong> Untreated MGRS → high rate of ESKD</li>
+            <li><strong>Transplant:</strong> Without clone eradication → ~90% recurrence in allograft<a href="#ref10" class="cite">[10]</a></li>
+            <li><strong>Clone may progress:</strong> 1-2%/year risk of progression to overt myeloma/lymphoma</li>
+            <li><strong>Treatment is nephroprotective:</strong> Clone-directed therapy preserves kidney function</li>
+            <li><strong>Hematology referral is mandatory:</strong> Clone identification and treatment planning</li>
+          </ul>
+        </div>
+        <div class="section-label" style="margin-top:1rem;"><i class="fas fa-vial"></i> Diagnostic Criteria</div>
+        <table class="comparison-table">
+          <thead><tr><th>Criterion</th><th>Requirement</th></tr></thead>
+          <tbody>
+            <tr><td class="feature-col">Monoclonal Ig</td><td>Detected in serum/urine by SPEP/UPEP/sFLC/IFE<a href="#ref3" class="cite">[3]</a></td></tr>
+            <tr><td class="feature-col">Kidney biopsy</td><td>Monoclonal Ig deposition OR paraprotein-related lesion<a href="#ref4" class="cite">[4]</a></td></tr>
+            <tr><td class="feature-col">Clone detection</td><td>Bone marrow: clonal plasma cells/B-cells (often <10%)</td></tr>
+            <tr><td class="feature-col">Causality</td><td>Same light chain class in kidney deposits AND serum/urine<a href="#ref3" class="cite">[3]</a></td></tr>
+            <tr><td class="feature-col">Exclude myeloma</td><td>No CRAB criteria (hyperCalcemia, Renal, Anemia, Bone)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: RENAL LESIONS CLASSIFICATION -->
+  <div class="step-card">
+    <div class="step-title"><i class="fas fa-microscope"></i> 2. MGRS-Associated Renal Lesions · Classification</div>
+
+    <p style="font-size:0.85rem; color:#7b5a3e; margin-bottom:0.8rem;">Select the biopsy-proven renal lesion to see specific diagnostic and treatment guidance.</p>
+    <div class="options-grid" id="lesionOptions" style="flex-direction:column; max-width:600px;">
+      <button class="option-btn" data-lesion="al_amyloid"><i class="fas fa-circle" style="color:#c0392b;"></i> AL Amyloidosis (light chain amyloid)</button>
+      <button class="option-btn" data-lesion="lcdd"><i class="fas fa-circle" style="color:#d4842e;"></i> Light Chain Deposition Disease (LCDD)</button>
+      <button class="option-btn" data-lesion="lhcdd"><i class="fas fa-circle" style="color:#b8860b;"></i> Light & Heavy Chain Deposition Disease (LHCDD)</button>
+      <button class="option-btn" data-lesion="pgnmid"><i class="fas fa-circle" style="color:#7b4fa0;"></i> PGNMID (Proliferative GN with Monoclonal Ig)</button>
+      <button class="option-btn" data-lesion="c3g_mgrs"><i class="fas fa-circle" style="color:#3a6b9e;"></i> C3G with Monoclonal Gammopathy</button>
+      <button class="option-btn" data-lesion="cryo"><i class="fas fa-circle" style="color:#1a7a6e;"></i> Cryoglobulinemic GN (Type I)</button>
+      <button class="option-btn" data-lesion="fanconi"><i class="fas fa-circle" style="color:#6b3a1f;"></i> Light Chain Proximal Tubulopathy (Fanconi)</button>
+      <button class="option-btn" data-lesion="cast_neph"><i class="fas fa-circle" style="color:#c0392b;"></i> Cast Nephropathy (Myeloma Kidney)</button>
+    </div>
+    <div id="lesionFeedback" class="info-box" style="margin-top:0.8rem;">
+      <strong>🔬 Select a lesion type</strong> to see detailed pathology, diagnostic workup, and treatment.
+    </div>
+    <div id="lesionDetail" style="margin-top:1rem;"></div>
+  </div>
+
+  <!-- STEP 3: DIAGNOSTIC WORKUP -->
+  <div class="step-card">
+    <div class="step-title"><i class="fas fa-search"></i> 3. Complete Diagnostic Workup · IKMG Algorithm</div>
+
+    <div class="grid-3col">
+      <div class="info-box">
+        <h4 style="color:#5c2d0e; margin-bottom:0.3rem;"><i class="fas fa-vial"></i> Blood Tests</h4>
+        <ul style="margin-left:1.2rem; line-height:1.8; font-size:0.85rem;">
+          <li><strong>SPEP + IFE</strong> (serum protein electrophoresis + immunofixation)</li>
+          <li><strong>sFLC assay</strong> (free κ, free λ, κ/λ ratio)</li>
+          <li><strong>IgG, IgA, IgM levels</strong></li>
+          <li>CBC, calcium, creatinine</li>
+          <li>LDH, β2-microglobulin</li>
+          <li>C3, C4, CH50</li>
+        </ul>
+        <p style="margin-top:0.5rem; font-size:0.78rem; color:#7b5a3e; font-style:italic;"><i class="fas fa-balance-scale"></i> Contested: BSH 2025 endorses routine SPEP + FLC at first nephrology visit;<a href="#ref2" class="cite">[2]</a> European 2026 finds insufficient evidence for routine screening.<a href="#ref1" class="cite">[1]</a></p>
+      </div>
+      <div class="info-box">
+        <h4 style="color:#5c2d0e; margin-bottom:0.3rem;"><i class="fas fa-flask"></i> Urine Tests</h4>
+        <ul style="margin-left:1.2rem; line-height:1.8; font-size:0.85rem;">
+          <li><strong>24h urine protein + UPEP + IFE</strong></li>
+          <li>Urine albumin/creatinine ratio</li>
+          <li>Bence Jones protein (free light chains)</li>
+          <li><strong>Midstream urine for sFLC</strong> (if renal impairment)</li>
+        </ul>
+      </div>
+      <div class="info-box">
+        <h4 style="color:#5c2d0e; margin-bottom:0.3rem;"><i class="fas fa-microscope"></i> Tissue & Imaging</h4>
+        <ul style="margin-left:1.2rem; line-height:1.8; font-size:0.85rem;">
+          <li><strong>Kidney biopsy:</strong> LM, IF (κ, λ, IgG, IgA, IgM, C3, C1q), EM — <em>EM in all suspected cases</em><a href="#ref2" class="cite">[2]</a></li>
+          <li><strong>Congo Red stain</strong> for amyloid (apple-green birefringence)</li>
+          <li><strong>LMD-MS</strong> (laser microdissection + mass spectrometry) for typing</li>
+          <li><strong>Bone marrow biopsy + aspirate</strong> with flow cytometry, cytogenetics, FISH</li>
+          <li><strong>PET-CT</strong> if suspect lymphoma or plasmacytoma</li>
+          <li><strong>Skeletal survey</strong> if suspect myeloma</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:1.5rem;"><i class="fas fa-clipboard-check"></i> NCCN Biopsy Triggers (v2.2027)<a href="#ref3" class="cite">[3]</a></div>
+    <p style="font-size:0.85rem; color:#7b5a3e; margin-bottom:0.5rem;">Kidney biopsy is <strong>recommended</strong> if any of the following are present in a patient with monoclonal gammopathy:</p>
+    <div class="bio-trigger-flow">
+      <div class="bio-trigger-item">AKI<br><strong>Stage 3</strong></div>
+      <span class="bio-trigger-or">OR</span>
+      <div class="bio-trigger-item">eGFR decline<br><strong>&gt;2 mL/min/yr</strong></div>
+      <span class="bio-trigger-or">OR</span>
+      <div class="bio-trigger-item">Proteinuria<br><strong>&gt;1 g/day</strong></div>
+      <span class="bio-trigger-or">OR</span>
+      <div class="bio-trigger-item">Fanconi<br><strong>Syndrome</strong></div>
+    </div>
+
+    <div class="info-box important" style="margin-top:1rem;">
+      <p><strong><i class="fas fa-star"></i> Critical Diagnostic Principle:</strong> The light chain restriction in kidney deposits <strong>must match</strong> the monoclonal protein in serum/urine and the clonal population in bone marrow. This triad confirms the monoclonal Ig is pathogenic.<a href="#ref3" class="cite">[3]</a><a href="#ref4" class="cite">[4]</a></p>
+    </div>
+  </div>
+
+  <!-- STEP 4: LESION-SPECIFIC MANAGEMENT -->
+  <div class="step-card">
+    <div class="step-title"><i class="fas fa-prescription-bottle"></i> 4. Lesion-Specific Treatment Protocols</div>
+    <div id="treatmentDisplay">
+      <p style="color:#5c2d0e; font-weight:500;">Select a lesion type in Step 2 to view detailed treatment protocol.</p>
+    </div>
+  </div>
+
+  <!-- STEP 5: CLONE-DIRECTED THERAPY -->
+  <div class="step-card">
+    <div class="step-title"><i class="fas fa-bullseye"></i> 5. Clone-Directed Therapy · Principles & Regimens</div>
+
+    <div class="grid-2col">
+      <div>
+        <div class="section-label"><i class="fas fa-syringe"></i> Plasma Cell Clone (Most Common)</div>
+        <div class="treatment-panel" style="border-left:4px solid #7b4fa0;">
+          <h4><span class="pill purple">Plasma Cell</span> Therapy Options</h4>
+          <ul>
+            <li><strong>1st line:</strong> Daratumumab (anti-CD38) + bortezomib + dexamethasone (DBd)<a href="#ref7" class="cite">[7]</a></li>
+            <li><strong>Alternative:</strong> Bortezomib + cyclophosphamide + dexamethasone (VCd)</li>
+            <li><strong>If κ light chain:</strong> Consider bortezomib-based (κ clones more sensitive)</li>
+            <li><strong>If frail/elderly:</strong> Daratumumab monotherapy or reduced-dose VCd</li>
+            <li><strong>Lenalidomide-based:</strong> Lenalidomide + dexamethasone (Rd) if bortezomib contraindicated</li>
+            <li><strong>Duration:</strong> 4-6 cycles, then assess hematologic + renal response</li>
+          </ul>
+        </div>
+        <div class="info-box purple" style="margin-top:0.8rem;">
+          <p style="font-size:0.85rem;"><strong><i class="fas fa-heartbeat"></i> AL Amyloidosis — updated standard:</strong> <strong>Dara-CyBorD</strong> (daratumumab + cyclophosphamide + bortezomib + dexamethasone) is now the accepted standard first-line regimen.<a href="#ref8" class="cite">[8]</a></p>
+        </div>
+      </div>
+      <div>
+        <div class="section-label"><i class="fas fa-syringe"></i> B-Cell / Lymphoplasmacytic Clone</div>
+        <div class="treatment-panel" style="border-left:4px solid #3a6b9e;">
+          <h4><span class="pill blue">B-Cell</span> Therapy Options</h4>
+          <ul>
+            <li><strong>IgM-MGRS / Waldenström:</strong> Rituximab + cyclophosphamide + dexamethasone (RCD)</li>
+            <li><strong>Alternative:</strong> Rituximab + bendamustine</li>
+            <li><strong>CLL-associated:</strong> Ibrutinib (BTK inhibitor) or venetoclax-based</li>
+            <li><strong>CD20+ B-cell clone:</strong> Rituximab-based regimens</li>
+            <li><strong>Duration:</strong> 4-6 cycles, rituximab maintenance may be considered</li>
+          </ul>
+        </div>
+        <div class="info-box success" style="margin-top:0.8rem;">
+          <p style="font-size:0.85rem;"><strong><i class="fas fa-chart-line"></i> Maintenance & duration:</strong> A 2026 retrospective study (n=50) found that <strong>maintenance therapy + induction &gt;6 months</strong> independently improved relapse-free survival.<a href="#ref11" class="cite">[11]</a></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:1rem;">
+      <h4 style="color:#5c2d0e;"><i class="fas fa-chart-line"></i> Response Assessment (IKMG Criteria)</h4>
+      <div class="grid-3col" style="margin-top:0.5rem;">
+        <div><strong>Hematologic CR:</strong> Negative SPEP/IFE + normal sFLC ratio</div>
+        <div><strong>Hematologic VGPR:</strong> >90% reduction in involved FLC or M-protein</div>
+        <div><strong>Renal Response:</strong> >50% reduction in proteinuria ± eGFR stabilization</div>
+      </div>
+      <p style="margin-top:0.7rem; padding-top:0.6rem; border-top:1px dashed #d4c4b8; font-size:0.85rem;"><strong><i class="fas fa-star"></i> Minimum target:</strong> <strong>≥VGPR</strong> is the established minimum depth of hematologic response for renal preservation.<a href="#ref14" class="cite">[14]</a> <em>Therapy is clone-directed, not histology-directed.</em><a href="#ref7" class="cite">[7]</a></p>
+    </div>
+  </div>
+
+  <!-- STEP 6: SERIAL MONITORING -->
+  <div class="step-card">
+    <div class="step-title"><i class="fas fa-chart-bar"></i> 6. Serial Monitoring · Hematologic + Renal Response</div>
+
+    <div class="table-responsive">
+      <table class="followup-table">
+        <thead><tr><th>Timepoint</th><th>Date</th><th>Treatment Status</th><th>eGFR</th><th>Proteinuria (g/d)</th><th>sFLC κ/λ Ratio</th><th>M-protein</th><th>Heme Response</th><th>Renal Response</th><th>Action</th></tr></thead>
+        <tbody id="followupTableBody">
+          <tr><td>Baseline</td><td><input type="date" value="2025-03-15" style="width:120px;"></td><td class="txn-status-cell not-started">Not started</td><td contenteditable="true">52</td><td contenteditable="true">4.8</td><td contenteditable="true">85 (κ restricted)</td><td contenteditable="true">+</td><td><span class="pill orange">Active</span></td><td><span class="pill orange">Active</span></td><td><button class="btn-reset btn-delete-row" style="padding:0.2rem 0.6rem;font-size:0.7rem;"><i class="fas fa-trash"></i></button></td></tr>
+          <tr><td>After Cycle 3</td><td><input type="date" value="2025-06-15" style="width:120px;"></td><td class="txn-status-cell not-started">Not started</td><td contenteditable="true">55</td><td contenteditable="true">2.8</td><td contenteditable="true">12</td><td contenteditable="true">Trace</td><td><span class="pill green">VGPR</span></td><td><span class="pill orange">Partial</span></td><td><button class="btn-reset btn-delete-row" style="padding:0.2rem 0.6rem;font-size:0.7rem;"><i class="fas fa-trash"></i></button></td></tr>
+          <tr><td>After Cycle 6</td><td><input type="date" value="2025-09-15" style="width:120px;"></td><td class="txn-status-cell not-started">Not started</td><td contenteditable="true">58</td><td contenteditable="true">1.2</td><td contenteditable="true">1.2</td><td contenteditable="true">Negative</td><td><span class="pill green">CR</span></td><td><span class="pill green">Good response</span></td><td><button class="btn-reset btn-delete-row" style="padding:0.2rem 0.6rem;font-size:0.7rem;"><i class="fas fa-trash"></i></button></td></tr>
+          <tr><td>12 Months</td><td><input type="date" value="2026-03-15" style="width:120px;"></td><td class="txn-status-cell not-started">Not started</td><td contenteditable="true">62</td><td contenteditable="true">0.5</td><td contenteditable="true">1.1</td><td contenteditable="true">Negative</td><td><span class="pill green">CR</span></td><td><span class="pill green">Near remission</span></td><td><button class="btn-reset btn-delete-row" style="padding:0.2rem 0.6rem;font-size:0.7rem;"><i class="fas fa-trash"></i></button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <button class="btn-primary" id="addRowBtn"><i class="fas fa-plus"></i> Add visit</button>
+    <div class="chart-container"><canvas id="dualAxisChart"></canvas></div>
+  </div>
+
+  <!-- STEP 7: TREATMENT GANTT CHART -->
+  <div class="step-card">
+    <div class="step-title"><i class="fas fa-calendar-alt"></i> 7. Treatment Gantt · Clone-Directed Regimens</div>
+
+    <div class="treatment-start-box">
+      <div class="field-group">
+        <label><i class="fas fa-play-circle"></i> Treatment Start Date</label>
+        <input type="date" id="txnStartDate">
+      </div>
+      <div class="field-group">
+        <label><i class="fas fa-flag-checkered"></i> Treatment End Date</label>
+        <input type="date" id="txnEndDate">
+      </div>
+      <div class="field-group">
+        <label><i class="fas fa-hourglass-half"></i> Planned Duration</label>
+        <div class="duration-display" id="txnDurationDisplay">-- months</div>
+      </div>
+      <div class="field-group">
+        <label><i class="fas fa-info-circle"></i> Status</label>
+        <div><span class="status-pill not-set" id="txnStatusPill">Not set</span></div>
+      </div>
+      <div class="field-group" style="grid-column: 1 / -1;">
+        <label><i class="fas fa-pen"></i> Regimen / Notes</label>
+        <input type="text" id="txnNotes" placeholder="e.g., DBd x 6 cycles, then maintenance daratumumab">
+      </div>
+    </div>
+
+    <div style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem;">
+      <button class="btn-primary" id="loadDBdBtn" style="font-size:0.85rem;">DBd (Daratumumab + Bortezomib)</button>
+      <button class="btn-reset" id="loadVCdBtn" style="font-size:0.85rem;">VCd (Bortezomib + Cyclophosphamide)</button>
+      <button class="btn-reset" id="loadRCDBtn" style="font-size:0.85rem;">RCD (Rituximab + Cyclophosphamide)</button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="med-edit-table" id="medEditTable">
+        <thead><tr><th>Medication</th><th>Class</th><th>Start Date</th><th>End Date</th><th>Duration</th><th>Indication</th></tr></thead>
+        <tbody id="medEditTableBody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin:0.5rem 0;">
+      <button class="btn-primary" id="updateGanttBtn"><i class="fas fa-sync-alt"></i> Update Gantt</button>
+      <button class="btn-reset" id="resetMedsBtn"><i class="fas fa-undo-alt"></i> Reset defaults</button>
+    </div>
+    <div class="gantt-container"><canvas id="ganttChart"></canvas></div>
+  </div>
+
+  <!-- STEP 8: TRANSPLANT CONSIDERATIONS -->
+  <div class="step-card">
+    <div class="step-title"><i class="fas fa-procedures"></i> 8. Kidney Transplant in MGRS</div>
+
+    <div class="grid-2col">
+      <div class="info-box danger">
+        <h4 style="color:#c0392b;"><i class="fas fa-exclamation-triangle"></i> Critical Considerations</h4>
+        <ul style="margin-left:1.2rem; line-height:1.8; font-size:0.85rem;">
+          <li><strong>Without clone eradication:</strong> ~90% recurrence in allograft<a href="#ref10" class="cite">[10]</a></li>
+          <li><strong>Pre-transplant requirement:</strong> Achieve hematologic CR/VGPR before listing</li>
+          <li><strong>Timing:</strong> Minimum 6-12 months of sustained hematologic response before transplant</li>
+          <li><strong>Post-transplant:</strong> Continue clone-directed therapy (maintenance)</li>
+          <li><strong>AL amyloidosis:</strong> More aggressive recurrence; consider ASCT before kidney transplant</li>
+          <li><strong>Underused:</strong> Renal transplantation remains underutilized in eligible MGRS patients.<a href="#ref8" class="cite">[8]</a></li>
+        </ul>
+      </div>
+      <div class="info-box success">
+        <h4 style="color:#2d7a3e;"><i class="fas fa-check-circle"></i> Transplant Eligibility Criteria</h4>
+        <ul style="margin-left:1.2rem; line-height:1.8; font-size:0.85rem;">
+          <li>Hematologic CR or VGPR sustained ≥6 months</li>
+          <li>No evidence of clonal progression</li>
+          <li>Age-appropriate for transplant</li>
+          <li>No severe extrarenal amyloid (if AL amyloidosis)</li>
+          <li>Cardiac evaluation (echo, NT-proBNP) if amyloidosis</li>
+          <li>Multidisciplinary team: nephrology + hematology + transplant surgery</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 9: PHARMACOPEIA -->
+  <div class="step-card">
+    <div class="step-title"><i class="fas fa-book-medical"></i> 9. MGRS Pharmacopeia</div>
+    <div class="med-table-scroll">
+      <table class="med-table">
+        <thead><tr><th>Drug</th><th>Class</th><th>Dosing</th><th>Clone Target</th><th>Monitoring</th><th>Adverse Effects</th></tr></thead>
+        <tbody>
+          <tr style="background:#f8f0e8;"><td colspan="6"><strong>PROTEASOME INHIBITORS (Plasma Cell Clone)</strong></td></tr>
+          <tr><td class="drug-name"><strong>Bortezomib</strong></td><td>Proteasome Inhibitor</td><td>1.3 mg/m² SC weekly (or days 1,4,8,11 q21d) × 4-6 cycles</td><td><span class="pill purple">Plasma cell</span></td><td>CBC, LFTs, neuropathy assessment</td><td>Peripheral neuropathy, thrombocytopenia, fatigue, herpes zoster reactivation</td></tr>
+          <tr><td class="drug-name"><strong>Carfilzomib</strong> <span class="pill red" style="font-size:0.6rem;">Avoid in CKD</span></td><td>Proteasome Inhibitor (2nd gen)</td><td>20-56 mg/m² IV days 1,2,8,9,15,16 q28d</td><td><span class="pill purple">Plasma cell</span> (bortezomib-resistant)</td><td>Echo (cardiac), CBC, LFTs</td><td>Cardiotoxicity (CVA, HF, HTN), AKI, TLS<a href="#ref10" class="cite">[10]</a></td></tr>
+          <tr><td class="drug-name"><strong>Ixazomib</strong></td><td>Oral Proteasome Inhibitor</td><td>4 mg PO days 1,8,15 q28d</td><td><span class="pill purple">Plasma cell</span></td><td>CBC, LFTs, neuropathy</td><td>Thrombocytopenia, GI upset, neuropathy (less than bortezomib)</td></tr>
+          <tr style="background:#f8f0e8;"><td colspan="6"><strong>MONOCLONAL ANTIBODIES</strong></td></tr>
+          <tr><td class="drug-name"><strong>Daratumumab</strong></td><td>Anti-CD38 mAb</td><td>16 mg/kg IV weekly × 8, then q2wks × 8, then q4wks</td><td><span class="pill purple">Plasma cell</span></td><td>CBC, infusion reactions, infection, blood typing (interferes)</td><td>Infusion reactions, neutropenia, infection, HBV reactivation</td></tr>
+          <tr><td class="drug-name"><strong>Rituximab</strong></td><td>Anti-CD20 mAb</td><td>375 mg/m² IV weekly × 4 or 1g × 2 (2 wks apart)</td><td><span class="pill blue">B-cell / CD20+</span></td><td>CD20 counts, HBV/HCV, infusion reactions</td><td>Infusion reactions, infection, HBV reactivation, PML (rare)</td></tr>
+          <tr style="background:#f8f0e8;"><td colspan="6"><strong>IMMUNOMODULATORY DRUGS (IMiDs)</strong></td></tr>
+          <tr><td class="drug-name"><strong>Lenalidomide</strong> <span class="pill red" style="font-size:0.6rem;">Renally cleared</span></td><td>IMiD</td><td>25 mg/d days 1-21 q28d (dose-reduce in CKD)</td><td><span class="pill purple">Plasma cell</span></td><td>CBC, LFTs, VTE prophylaxis (aspirin/DOAC)</td><td>Myelosuppression, thrombosis, teratogenicity, rash, fatigue<a href="#ref10" class="cite">[10]</a><a href="#ref16" class="cite">[16]</a></td></tr>
+          <tr><td class="drug-name"><strong>Pomalidomide</strong></td><td>IMiD (2nd gen)</td><td>4 mg/d days 1-21 q28d</td><td><span class="pill purple">Plasma cell</span> (lenalidomide-resistant)</td><td>CBC, VTE prophylaxis</td><td>Myelosuppression, thrombosis, teratogenicity</td></tr>
+          <tr style="background:#f8f0e8;"><td colspan="6"><strong>ALKYLATING AGENTS</strong></td></tr>
+          <tr><td class="drug-name"><strong>Cyclophosphamide</strong></td><td>Alkylating Agent</td><td>500 mg/m² IV q3wks or 50-100 mg/d PO</td><td><span class="pill blue">B-cell / Plasma cell</span></td><td>CBC weekly, LFTs, UA (cystitis), cumulative dose</td><td>Myelosuppression, hemorrhagic cystitis, gonadal toxicity, malignancy</td></tr>
+          <tr><td class="drug-name"><strong>Bendamustine</strong></td><td>Alkylating + Purine Analog</td><td>90 mg/m² IV days 1,2 q28d × 4-6 cycles</td><td><span class="pill blue">B-cell / IgM-MGRS</span></td><td>CBC, infection, TLS</td><td>Myelosuppression, infection, TLS, skin reactions</td></tr>
+          <tr style="background:#f8f0e8;"><td colspan="6"><strong>CORTICOSTEROIDS</strong></td></tr>
+          <tr><td class="drug-name"><strong>Dexamethasone</strong></td><td>Corticosteroid</td><td>20-40 mg weekly (with chemotherapy)</td><td><span class="pill orange">All clones</span></td><td>BP, glucose, infection, mood</td><td>Hyperglycemia, infection, insomnia, mood changes, osteoporosis</td></tr>
+          <tr><td class="drug-name"><strong>Prednisone</strong></td><td>Corticosteroid</td><td>0.5-1 mg/kg/d (taper)</td><td><span class="pill orange">All clones</span></td><td>Weight, BP, glucose, bone density</td><td>Weight gain, DM, cataracts, osteoporosis, avascular necrosis</td></tr>
+          <tr style="background:#f8f0e8;"><td colspan="6"><strong>BTK INHIBITORS (B-Cell Receptor Pathway)</strong></td></tr>
+          <tr><td class="drug-name"><strong>Ibrutinib</strong></td><td>BTK Inhibitor</td><td>420-560 mg/d PO (continuous)</td><td><span class="pill blue">CLL / WM / IgM-MGRS</span></td><td>CBC, LFTs, cardiac (AF), bleeding</td><td>Bleeding, atrial fibrillation, HTN, infection, arthralgias</td></tr>
+          <tr><td class="drug-name"><strong>Zanubrutinib</strong></td><td>BTK Inhibitor (2nd gen)</td><td>160 mg BID or 320 mg/d</td><td><span class="pill blue">CLL / WM / IgM-MGRS</span></td><td>CBC, LFTs, bleeding</td><td>Bleeding (less than ibrutinib), infection, cytopenias</td></tr>
+          <tr style="background:#f8f0e8;"><td colspan="6"><strong>SUPPORTIVE MEDICATIONS</strong></td></tr>
+          <tr><td class="drug-name"><strong>Lisinopril/Losartan</strong></td><td>ACEi/ARB</td><td>Max tolerated dose</td><td><span class="pill teal">All MGRS</span></td><td>Cr, K+ at 1-2 weeks</td><td>Cough, hyperkalemia</td></tr>
+          <tr><td class="drug-name"><strong>SGLT2i</strong></td><td>SGLT2i</td><td>Dapagliflozin 10 mg/d</td><td><span class="pill teal">All MGRS</span></td><td>eGFR, volume, DKA</td><td>Genital infections, DKA</td></tr>
+          <tr><td class="drug-name"><strong>Acyclovir/Valacyclovir</strong></td><td>Antiviral</td><td>400-500 mg BID</td><td><span class="pill red">With bortezomib</span></td><td>Renal function</td><td>GI upset, nephrotoxicity (high dose IV)</td></tr>
+          <tr><td class="drug-name"><strong>TMP-SMX</strong></td><td>Antibiotic (PJP ppx)</td><td>80/400 mg 3x/wk</td><td><span class="pill red">With high-dose steroids</span></td><td>CBC, K+, Cr</td><td>Rash, hyperkalemia</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:0.8rem; font-size:0.8rem; color:#7b5a3e; font-style:italic;"><i class="fas fa-info-circle"></i> Where feasible, <strong>avoid renally cleared or nephrotoxic agents</strong> (lenalidomide, melphalan dosing, carfilzomib) in MGRS with significant CKD.<a href="#ref10" class="cite">[10]</a><a href="#ref16" class="cite">[16]</a></p>
+  </div>
+
+  <!-- STEP 10: EVIDENCE BASE & GUIDELINES (NEW) -->
+  <div class="step-card">
+    <div class="step-title"><i class="fas fa-graduation-cap"></i> 10. Evidence Base & Guidelines · Recent Sources</div>
+
+    <p style="font-size:0.85rem; color:#7b5a3e; margin-bottom:1rem;">Two new consensus guidelines (European 2026; BSH 2025) and the NCCN v2.2027 MGRS pathway anchor the current evidence, building on the foundational IKMG 2019 consensus.</p>
+
+    <div class="section-label"><i class="fas fa-table"></i> Guideline Comparison</div>
+    <div class="table-responsive">
+      <table class="comparison-table">
+        <thead>
+          <tr>
+            <th>Source (year)</th>
+            <th>Society / body</th>
+            <th>What it covers</th>
+            <th>Key positions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="feature-col">European consensus (2026)<a href="#ref1" class="cite">[1]</a></td>
+            <td>Sprangers et al.</td>
+            <td>Definition, diagnosis, general treatment principles</td>
+            <td><strong>No evidence</strong> for routine serum M-protein screening or routine kidney biopsy in MGUS+CKD; absence of serum M-protein or BM clone does <strong>not</strong> exclude MGRS; diagnosis requires expert nephropathology; most patients benefit from clone-directed therapy; <em>explicitly differs from BSH/IKMG on screening</em></td>
+          </tr>
+          <tr>
+            <td class="feature-col">BSH good practice paper (2025)<a href="#ref2" class="cite">[2]</a></td>
+            <td>British Society for Haematology</td>
+            <td>Investigation, supportive + haematological therapy, monitoring</td>
+            <td>Recommends <strong>serum electrophoresis + FLC at first nephrology visit</strong>; treat the clone in at-risk patients across all CKD stages to prevent kidney failure (1C); reserve treatment in ESKD for transplant candidates; manage via specialist MDT; EM in all suspected cases</td>
+          </tr>
+          <tr>
+            <td class="feature-col">NCCN Multiple Myeloma, MGRS-1/2 (v2.2027, 2026)<a href="#ref3" class="cite">[3]</a></td>
+            <td>NCCN</td>
+            <td>Workup, biopsy triggers, treatment routing, response assessment</td>
+            <td>Biopsy <strong>recommended</strong> for AKI stage 3, eGFR 2 mL/min/yr decline, proteinuria &gt;1 g/day, or Fanconi; route therapy by clone (plasma cell → MM algorithm; LPL → WM; MBL features → CLL/SLL); M-protein must match biopsy deposits</td>
+          </tr>
+          <tr>
+            <td class="feature-col">IKMG consensus (2019)<a href="#ref4" class="cite">[4]</a></td>
+            <td>International Kidney and Monoclonal Gammopathy Research Group</td>
+            <td>Definition and diagnostic criteria (not treatment)</td>
+            <td>Redefined MGRS as a clonal disorder producing a nephrotoxic MIg not meeting criteria to treat a malignancy; <strong>kidney biopsy + IF central to diagnosis</strong>; treatment deliberately not addressed</td>
+          </tr>
+          <tr>
+            <td class="feature-col">KDIGO Glomerular Diseases (2021)<a href="#ref5" class="cite">[5]</a></td>
+            <td>KDIGO</td>
+            <td>MPGN-pattern ICGN with monoclonal Ig</td>
+            <td>Provides a response-based immunosuppression framework for monoclonal-Ig-associated GN where no clone is identified</td>
+          </tr>
+          <tr>
+            <td class="feature-col">EMN rare plasma cell dyscrasias (2018)<a href="#ref6" class="cite">[6]</a></td>
+            <td>European Myeloma Network</td>
+            <td>MIDD treatment</td>
+            <td>Bortezomib-based regimens first-line for MIDD; deep haematologic response predicts renal response</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="section-label" style="margin-top:1.5rem;"><i class="fas fa-bullseye"></i> Cross-Cutting Themes from the Newest Evidence</div>
+    <div class="ev-grid">
+      <div class="ev-card consensus">
+        <h5><i class="fas fa-microscope"></i> Diagnosis hinges on kidney biopsy</h5>
+        <p>LM + IF (including IgG subclasses and κ/λ) + EM. Serum/urine M-protein should match the biopsy deposit. A negative serum M-protein or bone marrow clone does <strong>not</strong> exclude MGRS.<a href="#ref1" class="cite">[1]</a><a href="#ref3" class="cite">[3]</a><a href="#ref4" class="cite">[4]</a></p>
+      </div>
+      <div class="ev-card consensus">
+        <h5><i class="fas fa-bullseye"></i> Therapy is clone-directed, not histology-directed</h5>
+        <p>Plasma cell → PI + anti-CD38 (daratumumab). IgM/lymphoplasmacytic → rituximab-based (WM pathway). MBL/CLL features → CLL pathway.<a href="#ref3" class="cite">[3]</a><a href="#ref7" class="cite">[7]</a><a href="#ref8" class="cite">[8]</a><a href="#ref15" class="cite">[15]</a></p>
+      </div>
+      <div class="ev-card consensus">
+        <h5><i class="fas fa-chart-line"></i> Depth of hematologic response drives renal outcome</h5>
+        <p><strong>≥VGPR</strong> is the established minimum for renal preservation. Emerging data support maintenance therapy and induction &gt;6 months.<a href="#ref11" class="cite">[11]</a><a href="#ref14" class="cite">[14]</a><a href="#ref2" class="cite">[2]</a></p>
+      </div>
+      <div class="ev-card emerging">
+        <h5><i class="fas fa-shield-alt"></i> Avoid renally cleared / nephrotoxic agents</h5>
+        <p>Lenalidomide, melphalan dosing, carfilzomib where feasible. In ESKD, treat primarily to enable kidney transplantation — uncontrolled clone carries ~90% post-transplant recurrence.<a href="#ref10" class="cite">[10]</a><a href="#ref16" class="cite">[16]</a></p>
+      </div>
+      <div class="ev-card contested">
+        <h5><i class="fas fa-balance-scale"></i> Screening practices remain contested</h5>
+        <p><strong>BSH</strong> endorses routine SPEP/FLC at first nephrology visit.<a href="#ref2" class="cite">[2]</a> <strong>European consensus</strong> finds insufficient evidence for routine M-protein screening or routine biopsy in MGUS+CKD.<a href="#ref1" class="cite">[1]</a></p>
+      </div>
+      <div class="ev-card emerging">
+        <h5><i class="fas fa-procedures"></i> NCCN pathway now operationalized</h5>
+        <p>NCCN routes suspected MGRS through a dedicated algorithm (MGRS-1/MGRS-2) defining when to biopsy and how to assign response criteria by paraprotein isotype.<a href="#ref3" class="cite">[3]</a></p>
+      </div>
+    </div>
+
+    <div class="section-label" style="margin-top:1.5rem;"><i class="fas fa-book"></i> Full Reference List</div>
+    <ol class="ref-list">
+      <li id="ref1">Executive summary of the European consensus report on the diagnosis and treatment of monoclonal gammopathy of renal significance. Sprangers B, Cohen C, Gnemmi V, et al. <em>Clinical Kidney Journal.</em> 2026;19(6):sfag163. <a href="https://doi.org/10.1093/ckj/sfag163" target="_blank">doi:10.1093/ckj/sfag163</a></li>
+      <li id="ref2">Diagnosis and management of monoclonal gammopathy of renal significance: A British Society for Haematology good practice paper. Pinney J, Roufosse C, Kousios A, et al. <em>British Journal of Haematology.</em> 2025;206(2):447-463. <a href="https://doi.org/10.1111/bjh.19956" target="_blank">doi:10.1111/bjh.19956</a></li>
+      <li id="ref3">Multiple Myeloma. National Comprehensive Cancer Network. Updated 2026-09-24. (MGRS-1/MGRS-2, v2.2027)</li>
+      <li id="ref4">The evaluation of monoclonal gammopathy of renal significance: a consensus report of the International Kidney and Monoclonal Gammopathy Research Group. Leung N, Bridoux F, Batuman V, et al. <em>Nature Reviews Nephrology.</em> 2019;15(1):45-59. <a href="https://doi.org/10.1038/s41581-018-0077-4" target="_blank">doi:10.1038/s41581-018-0077-4</a></li>
+      <li id="ref5">The 2021 Clinical Practice Guideline for the Management of Glomerular Diseases. Ronco P, Rovin B, Schiandorf D, et al. <em>Kidney Disease: Improving Global Outcomes (KDIGO).</em></li>
+      <li id="ref6">European myeloma network recommendations on diagnosis and management of patients with rare plasma cell dyscrasias. Gavriatopoulou M, Musto P, Caers J, et al. <em>Leukemia.</em> 2018;32(9):1883-1898. <a href="https://doi.org/10.1038/s41375-018-0209-7" target="_blank">doi:10.1038/s41375-018-0209-7</a></li>
+      <li id="ref7">Management of Monoclonal Gammopathy of Renal Significance: Treatment Standard. Jaturapisanukul S, Nasr SH, Leung N. <em>Nephrology, Dialysis, Transplantation.</em> 2026;41(3):445-456. <a href="https://doi.org/10.1093/ndt/gfaf254" target="_blank">doi:10.1093/ndt/gfaf254</a></li>
+      <li id="ref8">Monoclonal Gammopathy of Renal Significance From a Hematologic Perspective. Brailovski E, Jaffer IS, Landau HJ. <em>Hematology ASH Education Program.</em> 2025;2025(1):377-384. <a href="https://doi.org/10.1182/hematology.2025000727" target="_blank">doi:10.1182/hematology.2025000727</a></li>
+      <li id="ref9">Renal Manifestations of MGUS. Bridoux F, Nasr SH, Arnulf B, et al. <em>Hematology ASH Education Program.</em> 2024;2024(1):489-498. <a href="https://doi.org/10.1182/hematology.2024000573" target="_blank">doi:10.1182/hematology.2024000573</a></li>
+      <li id="ref10">Monoclonal gammopathy of clinical significance: a multisystem review. Sra MS, Rajkumar SV, Kumar S. <em>Blood Cancer Journal.</em> 2026;16(1):128. <a href="https://doi.org/10.1038/s41408-026-01528-5" target="_blank">doi:10.1038/s41408-026-01528-5</a></li>
+      <li id="ref11">Maintenance Therapy and Improved Relapse-Free Survival in Patients With Monoclonal Gammopathy of Renal Significance. Cottini F, Iyer S, Avila-Rodriguez A, et al. <em>Blood Advances.</em> 2026;10(17):6018-6026. <a href="https://doi.org/10.1182/bloodadvances.2025018896" target="_blank">doi:10.1182/bloodadvances.2025018896</a></li>
+      <li id="ref12">Current management of non-amyloidosis monoclonal gammopathy of renal significance. Cancilla D, Sawaf H, Jia X, et al. <em>British Journal of Haematology.</em> 2026;208(1):329-332. <a href="https://doi.org/10.1111/bjh.70223" target="_blank">doi:10.1111/bjh.70223</a></li>
+      <li id="ref13">Monoclonal Gammopathy of Renal Significance: Multidisciplinary Approach to Diagnosis and Treatment. Karam S, Haidous M, Dalle IA, et al. <em>Critical Reviews in Oncology/Hematology.</em> 2023;183:103926. <a href="https://doi.org/10.1016/j.critrevonc.2023.103926" target="_blank">doi:10.1016/j.critrevonc.2023.103926</a></li>
+      <li id="ref14">Monoclonal Gammopathy of Renal Significance. Leung N, Bridoux F, Nasr SH. <em>The New England Journal of Medicine.</em> 2021;384(20):1931-1941. <a href="https://doi.org/10.1056/NEJMra1810907" target="_blank">doi:10.1056/NEJMra1810907</a></li>
+      <li id="ref15">The evaluation and management of monoclonal gammopathy of renal significance and monoclonal gammopathy of neurological significance. Castillo JJ, Callander NS, Baljevic M, Sborov DW, Kumar S. <em>American Journal of Hematology.</em> 2021;96(7):846-853. <a href="https://doi.org/10.1002/ajh.26155" target="_blank">doi:10.1002/ajh.26155</a></li>
+      <li id="ref16">Paraprotein-associated Kidney Disorders. Javaugue V, Bridoux F, Leung N. <em>Evidence-Based Nephrology, 2nd Edition.</em> 2022.</li>
+    </ol>
+  </div>
+
+  <div class="footnote">
+    <i class="fas fa-clipboard-list"></i>
+    <strong>MGRS Core Principles:</strong> 1. Identify the clone (bone marrow + SPEP/sFLC).
+    2. Prove causality (same light chain in kidney + serum).
+    3. Clone-directed therapy (NOT kidney-directed immunosuppression).
+    4. Achieve hematologic CR/VGPR for renal response.
+    5. CR required before kidney transplant.
+    <button class="btn-reset" id="resetBtn"><i class="fas fa-undo-alt"></i> Reset all</button>
+  </div>
+</div>
+
+<script>
+(function() {
+  let currentMeds = null;
+  let dualAxisChart = null;
+  let ganttChart = null;
+  let treatmentStartDate = null;
+  let treatmentEndDate = null;
+
+  const MS_PER_DAY = 86400000;
+
+  function parseDateInput(str) {
+    if (!str) return null;
+    const d = new Date(str + 'T00:00:00');
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  function toInputValue(date) {
+    if (!date) return '';
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+
+  function addMonths(date, months) {
+    if (!date) return null;
+    const d = new Date(date.getTime());
+    const day = d.getDate();
+    d.setMonth(d.getMonth() + months);
+    if (d.getDate() < day) d.setDate(0);
+    return d;
+  }
+
+  function monthsBetween(a, b) {
+    if (!a || !b) return 0;
+    return Math.round((b - a) / (MS_PER_DAY * 30.4375));
+  }
+
+  function formatDateShort(date) {
+    if (!date) return '--';
+    return date.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: '2-digit' });
+  }
+
+  // ---------------- Lesion data ----------------
+  const LESION_DATA = {
+    al_amyloid: {
+      name: 'AL Amyloidosis',
+      pathology: 'Congo Red positive, apple-green birefringence. EM: 8-12nm non-branching fibrils. IF: light chain restriction (λ > κ).',
+      workup: 'NT-proBNP, troponin T, echocardiogram (cardiac involvement). SAP scan if available. Bone marrow: usually <10% plasma cells.',
+      treatment: `<ul><li><strong>1st line:</strong> Daratumumab + bortezomib + dexamethasone (DBd) × 4-6 cycles</li><li><strong>If eligible:</strong> Consider autologous stem cell transplant (ASCT) after induction</li><li><strong>Cardiac stage:</strong> Guides prognosis (Mayo stage I-IV)</li><li><strong>Renal response:</strong> >50% reduction in proteinuria without eGFR decline</li><li><strong>Supportive:</strong> Diuretics, midodrine for hypotension, salt supplementation</li></ul>`,
+      pill: 'red'
+    },
+    lcdd: {
+      name: 'Light Chain Deposition Disease (LCDD)',
+      pathology: 'EM: granular electron-dense deposits along tubular and glomerular basement membranes. IF: light chain restriction (κ > λ). Congo Red negative.',
+      workup: 'SPEP/UPEP/sFLC. Bone marrow biopsy. κ/λ ratio in serum. LMD-MS for definitive typing.',
+      treatment: `<ul><li><strong>1st line:</strong> Bortezomib + cyclophosphamide + dexamethasone (VCd) × 6 cycles</li><li><strong>Alternative:</strong> Daratumumab-based (if bortezomib-resistant)</li><li><strong>Monitoring:</strong> sFLC ratio monthly; aim for sFLC ratio normalization</li><li><strong>Renal response:</strong> eGFR stabilization; proteinuria reduction slower</li></ul>`,
+      pill: 'orange'
+    },
+    lhcdd: {
+      name: 'Light & Heavy Chain Deposition Disease (LHCDD)',
+      pathology: 'Similar to LCDD but deposits contain both light and heavy chains (usually IgGκ). EM: granular deposits. IF: monoclonal IgG + light chain.',
+      workup: 'Same as LCDD. Check intact immunoglobulin levels (IgG, IgA, IgM).',
+      treatment: `<ul><li>Same principles as LCDD (clone-directed)</li><li>Target the clone producing intact Ig + light chain</li><li>VCd or DBd regimen</li></ul>`,
+      pill: 'gold'
+    },
+    pgnmid: {
+      name: 'PGNMID (Proliferative GN with Monoclonal Ig Deposits)',
+      pathology: 'LM: MPGN pattern. IF: monoclonal Ig deposits (usually IgG3κ). EM: granular electron-dense deposits. Congo Red negative.',
+      workup: 'SPEP/UPEP/sFLC/IFE. Bone marrow biopsy. Often clone is very small (<5%). LMD-MS for definitive typing.',
+      treatment: `<ul><li><strong>Clone-directed:</strong> Identify and target underlying clone</li><li><strong>Plasma cell clone:</strong> VCd or DBd</li><li><strong>B-cell clone:</strong> Rituximab-based (RCD or bendamustine)</li><li><strong>If no clone found:</strong> Empiric rituximab (CD20+) or bortezomib (plasma cell)</li><li><strong>Transplant:</strong> Very high recurrence without clone eradication</li></ul>`,
+      pill: 'purple'
+    },
+    c3g_mgrs: {
+      name: 'C3G with Monoclonal Gammopathy',
+      pathology: 'LM: MPGN pattern. IF: C3-dominant (≥2+). EM: deposits vary (C3GN or DDD). Monoclonal Ig acts as C3NeF or autoantibody to complement regulators.',
+      workup: 'C3, C4, C3NeF, Factor H, Factor I. sFLC, SPEP/IFE. Genetic complement testing.',
+      treatment: `<ul><li><strong>Clone-directed therapy:</strong> Treat underlying clone (usually plasma cell)</li><li><strong>VCd or DBd</strong> if plasma cell clone identified</li><li><strong>Complement inhibition:</strong> Eculizumab or pegcetacoplan may be added</li><li><strong>Prognosis:</strong> Better if clone eradicated</li></ul>`,
+      pill: 'blue'
+    },
+    cryo: {
+      name: 'Cryoglobulinemic GN (Type I)',
+      pathology: 'LM: MPGN with intracapillary thrombi (PAS+). IF: monoclonal Ig in thrombi. EM: organized deposits (microtubular).',
+      workup: 'Cryoglobulins (must collect in warm tube at 37°C). Rheumatoid factor, C3, C4 (low C4). SPEP/IFE.',
+      treatment: `<ul><li><strong>Type I (monoclonal):</strong> Clone-directed therapy</li><li><strong>IgM-MGRS:</strong> Rituximab + cyclophosphamide (RCD)</li><li><strong>Plasma cell:</strong> Bortezomib-based</li><li><strong>Severe:</strong> Plasma exchange for acute crisis</li></ul>`,
+      pill: 'teal'
+    },
+    fanconi: {
+      name: 'Light Chain Proximal Tubulopathy (Fanconi Syndrome)',
+      pathology: 'LM: proximal tubular injury. IF: light chain crystals in tubular epithelium (κ > λ). EM: crystalline inclusions in lysosomes.',
+      workup: 'Urine: glycosuria (normoglycemic), aminoaciduria, phosphaturia, uricosuria. sFLC. Bone marrow.',
+      treatment: `<ul><li><strong>Clone-directed:</strong> Usually plasma cell clone (κ)</li><li><strong>VCd or DBd</strong> regimen</li><li><strong>Renal response:</strong> Slow improvement in tubular function</li><li><strong>Supportive:</strong> Bicarbonate, phosphate, potassium replacement</li></ul>`,
+      pill: 'brown'
+    },
+    cast_neph: {
+      name: 'Cast Nephropathy (Myeloma Kidney)',
+      pathology: 'LM: fractured, laminated casts in distal tubules with giant cell reaction. IF: light chain restriction in casts. EM: casts with fractured appearance.',
+      workup: 'sFLC (often very high, >500 mg/L). Bone marrow: >10% plasma cells (may meet myeloma criteria). CRAB criteria.',
+      treatment: `<ul><li><strong>This is MYELOMA, not MGRS</strong> - treat as multiple myeloma</li><li><strong>1st line:</strong> Bortezomib + lenalidomide + dexamethasone (VRd)</li><li><strong>Supportive:</strong> Hydration, avoid nephrotoxins, treat hypercalcemia</li><li><strong>Plasma exchange:</strong> Controversial; may benefit if AKI + high sFLC</li></ul>`,
+      pill: 'red'
+    }
+  };
+
+  const DEFAULT_MEDS = {
+    DBd: [
+      { name: 'Daratumumab', cls: 'Anti-CD38', start: 0, end: 6, ind: 'Weekly x8, then q2wk' },
+      { name: 'Bortezomib', cls: 'Proteasome Inhibitor', start: 0, end: 4, ind: 'SC weekly x16wk' },
+      { name: 'Dexamethasone', cls: 'Steroid', start: 0, end: 6, ind: '40mg weekly' },
+      { name: 'Acyclovir (VZV ppx)', cls: 'Antiviral', start: 0, end: 5, ind: 'With bortezomib' },
+      { name: 'TMP-SMX (PJP ppx)', cls: 'Antibiotic', start: 0, end: 6, ind: 'With steroids' },
+      { name: 'RAAS Blockade', cls: 'ACEi/ARB', start: 0, end: 12, ind: 'Renal protection' },
+    ],
+    VCd: [
+      { name: 'Bortezomib', cls: 'Proteasome Inhibitor', start: 0, end: 5, ind: 'Days 1,4,8,11 q21d x6' },
+      { name: 'Cyclophosphamide', cls: 'Alkylating', start: 0, end: 5, ind: '300mg/m² PO weekly' },
+      { name: 'Dexamethasone', cls: 'Steroid', start: 0, end: 5, ind: '40mg weekly' },
+      { name: 'Acyclovir (VZV ppx)', cls: 'Antiviral', start: 0, end: 6, ind: 'With bortezomib' },
+      { name: 'RAAS Blockade', cls: 'ACEi/ARB', start: 0, end: 12, ind: 'Renal protection' },
+    ],
+    RCD: [
+      { name: 'Rituximab', cls: 'Anti-CD20', start: 0, end: 1, ind: '375mg/m² d1 q21d x4' },
+      { name: 'Rituximab (maintenance)', cls: 'Anti-CD20', start: 3, end: 12, ind: 'q2-3mo maintenance' },
+      { name: 'Cyclophosphamide', cls: 'Alkylating', start: 0, end: 4, ind: 'PO daily x4mo' },
+      { name: 'Dexamethasone', cls: 'Steroid', start: 0, end: 4, ind: 'With cycles' },
+      { name: 'RAAS Blockade', cls: 'ACEi/ARB', start: 0, end: 12, ind: 'Renal protection' },
+    ]
+  };
+
+  function buildMedsFromOffsets(offsets, startDate) {
+    const base = startDate || new Date();
+    return offsets.map(m => ({
+      name: m.name,
+      cls: m.cls,
+      startDate: addMonths(base, m.start),
+      endDate: addMonths(base, m.end),
+      ind: m.ind
+    }));
+  }
+
+  function setMeds(type) {
+    const offsets = DEFAULT_MEDS[type];
+    const base = treatmentStartDate || new Date();
+    currentMeds = buildMedsFromOffsets(offsets, base);
+    renderMedEditTable();
+    updateGanttChart();
+    refreshFollowupTreatmentStatus();
+  }
+
+  function renderMedEditTable() {
+    const tbody = document.getElementById('medEditTableBody');
+    tbody.innerHTML = '';
+    currentMeds.forEach((med, i) => {
+      const startStr = toInputValue(med.startDate);
+      const endStr = toInputValue(med.endDate);
+      const durMo = monthsBetween(med.startDate, med.endDate);
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td><strong>${med.name}</strong></td>
+        <td>${med.cls}</td>
+        <td><input type="date" value="${startStr}" data-idx="${i}" data-field="startDate" class="med-date-input"></td>
+        <td><input type="date" value="${endStr}" data-idx="${i}" data-field="endDate" class="med-date-input"></td>
+        <td><span id="dur-${i}">${durMo} mo</span></td>
+        <td><span class="pill teal">${med.ind}</span></td>
+      `;
+      tbody.appendChild(row);
+    });
+    document.querySelectorAll('.med-date-input').forEach(input => {
+      input.addEventListener('change', function() {
+        const idx = parseInt(this.dataset.idx);
+        const field = this.dataset.field;
+        const parsed = parseDateInput(this.value);
+        if (!parsed) return;
+        currentMeds[idx][field] = parsed;
+        if (currentMeds[idx].endDate < currentMeds[idx].startDate) {
+          if (field === 'startDate') {
+            currentMeds[idx].endDate = new Date(currentMeds[idx].startDate.getTime());
+          } else {
+            currentMeds[idx].startDate = new Date(currentMeds[idx].endDate.getTime());
+          }
+        }
+        document.getElementById('dur-' + idx).textContent =
+          monthsBetween(currentMeds[idx].startDate, currentMeds[idx].endDate) + ' mo';
+        this.value = toInputValue(currentMeds[idx][field]);
+      });
+    });
+  }
+
+  function updateGanttChart() {
+    const ctx = document.getElementById('ganttChart').getContext('2d');
+    if (ganttChart) ganttChart.destroy();
+
+    const colors = [
+      'rgba(123,63,26,0.85)', 'rgba(123,79,160,0.85)', 'rgba(192,57,43,0.75)',
+      'rgba(26,122,110,0.85)', 'rgba(58,107,158,0.85)', 'rgba(212,132,46,0.85)',
+    ];
+    const labels = currentMeds.map(m => m.name);
+
+    let minDate = null, maxDate = null;
+    currentMeds.forEach(m => {
+      if (!minDate || m.startDate < minDate) minDate = new Date(m.startDate.getTime());
+      if (!maxDate || m.endDate > maxDate) maxDate = new Date(m.endDate.getTime());
+    });
+    if (!minDate) minDate = new Date();
+    if (!maxDate) maxDate = addMonths(minDate, 12);
+    minDate = addMonths(minDate, -1);
+    maxDate = addMonths(maxDate, 1);
+
+    const barData = currentMeds.map((m, i) => ({
+      x: [m.startDate.getTime(), m.endDate.getTime()],
+      y: i
+    }));
+
+    const durationLabelPlugin = {
+      id: 'durationLabels',
+      afterDatasetsDraw(chart) {
+        const ctx = chart.ctx;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || !meta.data) return;
+        meta.data.forEach((bar, i) => {
+          if (!bar) return;
+          const d = chart.data.datasets[0].data[i];
+          if (!d || !d.x) return;
+          const durMs = d.x[1] - d.x[0];
+          const durMo = Math.round(durMs / (MS_PER_DAY * 30.4375));
+          const xS = chart.scales.x, yS = chart.scales.y;
+          const cx = (xS.getPixelForValue(d.x[0]) + xS.getPixelForValue(d.x[1])) / 2;
+          ctx.save();
+          ctx.font = 'bold 10px "Inter", sans-serif';
+          ctx.fillStyle = '#fff';
+          ctx.shadowColor = 'rgba(0,0,0,0.35)';
+          ctx.shadowBlur = 3;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(durMo + ' mo', cx, yS.getPixelForValue(i));
+          ctx.restore();
+        });
+      }
+    };
+
+    const todayLinePlugin = {
+      id: 'todayLine',
+      afterDraw(chart) {
+        const today = new Date();
+        const xS = chart.scales.x;
+        const xPix = xS.getPixelForValue(today.getTime());
+        if (xPix < chart.chartArea.left || xPix > chart.chartArea.right) return;
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(192,57,43,0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 3]);
+        ctx.moveTo(xPix, chart.chartArea.top);
+        ctx.lineTo(xPix, chart.chartArea.bottom);
+        ctx.stroke();
+        ctx.fillStyle = '#c0392b';
+        ctx.font = 'bold 10px "Inter", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Today', xPix, chart.chartArea.top - 4);
+        ctx.restore();
+      }
+    };
+
+    ganttChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: barData,
+          backgroundColor: currentMeds.map((_, i) => colors[i % colors.length]),
+          borderColor: currentMeds.map((_, i) => colors[i % colors.length].replace('0.85', '1')),
+          borderWidth: 1.5,
+          borderRadius: 6,
+          borderSkipped: false,
+          barPercentage: 0.7,
+          categoryPercentage: 0.8
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              title: (items) => items[0].label,
+              label: (c) => {
+                const startMs = c.raw.x[0];
+                const endMs = c.raw.x[1];
+                const startStr = formatDateShort(new Date(startMs));
+                const endStr = formatDateShort(new Date(endMs));
+                const durMo = monthsBetween(new Date(startMs), new Date(endMs));
+                return `${startStr}  →  ${endStr}  (${durMo} months)`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              unit: 'month',
+              displayFormats: { month: 'MMM yyyy' },
+              tooltipFormat: 'dd MMM yyyy'
+            },
+            title: { display: true, text: 'Calendar Date' },
+            min: minDate.getTime(),
+            max: maxDate.getTime(),
+            ticks: { source: 'auto', autoSkip: true, maxRotation: 0 }
+          },
+          y: { ticks: { font: { size: 10 }, autoSkip: false } }
+        }
+      },
+      plugins: [durationLabelPlugin, todayLinePlugin]
+    });
+  }
+
+  function updateDualAxisChart() {
+    const rows = document.querySelectorAll('#followupTableBody tr');
+    const rawLabels = [], egfr = [], prot = [], sflc = [], rowDates = [];
+    rows.forEach(row => {
+      const cells = row.querySelectorAll('td');
+      rawLabels.push(cells[0].textContent.trim());
+      const dateInput = row.querySelector('input[type="date"]');
+      const rowDate = dateInput ? parseDateInput(dateInput.value) : null;
+      rowDates.push(rowDate);
+      egfr.push(parseFloat(cells[3].textContent) || 0);
+      prot.push(parseFloat(cells[4].textContent) || 0);
+      sflc.push(parseFloat(cells[5].textContent) || 0);
+    });
+
+    const labels = rawLabels.map((lbl, i) => {
+      const d = rowDates[i];
+      return d ? d.toLocaleDateString('en-CA', { year: 'numeric', month: 'short', day: '2-digit' }) : lbl;
+    });
+
+    const ctx = document.getElementById('dualAxisChart').getContext('2d');
+    if (dualAxisChart) dualAxisChart.destroy();
+
+    function sameDay(a, b) {
+      return a && b && a.getFullYear() === b.getFullYear() &&
+        a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+    }
+
+    function interpolateX(date, dates, xScale) {
+      const valid = dates
+        .map((d, i) => ({ d, i }))
+        .filter(o => o.d);
+      if (valid.length === 0) return null;
+      const t = date.getTime();
+      let before = null, after = null;
+      for (const o of valid) {
+        const ot = o.d.getTime();
+        if (ot <= t && (!before || ot > before.d.getTime())) before = o;
+        if (ot >= t && (!after || ot < after.d.getTime())) after = o;
+      }
+      if (before && after && before.i !== after.i) {
+        const t0 = before.d.getTime(), t1 = after.d.getTime();
+        const x0 = xScale.getPixelForValue(before.i);
+        const x1 = xScale.getPixelForValue(after.i);
+        const frac = (t - t0) / (t1 - t0);
+        return x0 + frac * (x1 - x0);
+      }
+      if (before) return xScale.getPixelForValue(before.i);
+      if (after) return xScale.getPixelForValue(after.i);
+      return null;
+    }
+
+    const treatmentLinesPlugin = {
+      id: 'treatmentLines',
+      afterDatasetsDraw(chart) {
+        const s = treatmentStartDate;
+        const e = treatmentEndDate;
+        if (!s && !e) return;
+        const xS = chart.scales.x;
+        const ctx = chart.ctx;
+        const area = chart.chartArea;
+
+        function drawLine(date, color, label, dash) {
+          const idx = rowDates.findIndex(d => d && sameDay(d, date));
+          let xPix;
+          if (idx >= 0) {
+            xPix = xS.getPixelForValue(idx);
+          } else {
+            xPix = interpolateX(date, rowDates, xS);
+            if (xPix === null) return;
+          }
+          if (xPix < area.left || xPix > area.right) return;
+          ctx.save();
+          ctx.beginPath();
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.setLineDash(dash);
+          ctx.moveTo(xPix, area.top);
+          ctx.lineTo(xPix, area.bottom);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.font = 'bold 10px "Inter", sans-serif';
+          const text = label;
+          const tw = ctx.measureText(text).width + 10;
+          const th = 16;
+          const bx = Math.min(Math.max(xPix - tw / 2, area.left), area.right - tw);
+          const by = area.top + 2;
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(bx, by, tw, th, 4);
+          } else {
+            ctx.rect(bx, by, tw, th);
+          }
+          ctx.fill();
+          ctx.fillStyle = '#fff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(text, bx + tw / 2, by + th / 2 + 1);
+          ctx.restore();
+        }
+
+        drawLine(s, '#2d7a3e', 'Tx Start', []);
+        if (e) drawLine(e, '#3a6b9e', 'Tx End', [6, 4]);
+      }
+    };
+
+    dualAxisChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'eGFR (mL/min)', data: egfr, borderColor: '#5c2d0e', borderWidth: 3, yAxisID: 'y', tension: 0.3, fill: true, backgroundColor: 'rgba(92,45,14,0.1)' },
+          { label: 'Proteinuria (g/d)', data: prot, borderColor: '#c0392b', borderWidth: 2.5, yAxisID: 'y1', tension: 0.3, borderDash: [5, 5] },
+          { label: 'sFLC κ/λ Ratio', data: sflc, borderColor: '#7b4fa0', borderWidth: 2.5, yAxisID: 'y2', tension: 0.3, borderDash: [3, 3], hidden: true }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom' } },
+        scales: {
+          y: { position: 'left', title: { display: true, text: 'eGFR', color: '#5c2d0e' }, min: 0, max: 100 },
+          y1: { position: 'right', title: { display: true, text: 'Proteinuria (g/d)', color: '#c0392b' }, min: 0, max: 8, grid: { drawOnChartArea: false } },
+          y2: { position: 'right', title: { display: true, text: 'sFLC κ/λ Ratio', color: '#7b4fa0' }, min: 0, max: 100, grid: { drawOnChartArea: false } }
+        }
+      },
+      plugins: [treatmentLinesPlugin]
+    });
+  }
+
+  function refreshDurationAndStatus() {
+    const startInput = document.getElementById('txnStartDate');
+    const endInput = document.getElementById('txnEndDate');
+    const durEl = document.getElementById('txnDurationDisplay');
+    const statusPill = document.getElementById('txnStatusPill');
+
+    const s = parseDateInput(startInput.value);
+    const e = parseDateInput(endInput.value);
+    treatmentStartDate = s;
+    treatmentEndDate = e;
+
+    if (s && e) {
+      durEl.textContent = monthsBetween(s, e) + ' months';
+    } else if (s) {
+      const today = new Date();
+      durEl.textContent = monthsBetween(s, today) + ' months (to date)';
+    } else {
+      durEl.textContent = '-- months';
+    }
+
+    const today = new Date();
+    statusPill.className = 'status-pill';
+    if (!s) {
+      statusPill.classList.add('not-set');
+      statusPill.textContent = 'Not set';
+    } else if (s > today) {
+      statusPill.classList.add('not-started');
+      statusPill.textContent = 'Starts ' + formatDateShort(s);
+    } else if (e && e < today) {
+      statusPill.classList.add('completed');
+      statusPill.textContent = 'Completed ' + formatDateShort(e);
+    } else {
+      statusPill.classList.add('active');
+      statusPill.textContent = 'Active since ' + formatDateShort(s);
+    }
+
+    const currentRegimen = document.getElementById('loadDBdBtn').dataset.current || 'DBd';
+    if (s) {
+      const offsets = DEFAULT_MEDS[currentRegimen];
+      currentMeds = buildMedsFromOffsets(offsets, s);
+      renderMedEditTable();
+      updateGanttChart();
+    }
+    refreshFollowupTreatmentStatus();
+    updateDualAxisChart();
+  }
+
+  function refreshFollowupTreatmentStatus() {
+    const s = treatmentStartDate;
+    const e = treatmentEndDate;
+    document.querySelectorAll('#followupTableBody tr').forEach(row => {
+      const dateInput = row.querySelector('input[type="date"]');
+      const cell = row.querySelector('.txn-status-cell');
+      if (!cell || !dateInput) return;
+      const rowDate = parseDateInput(dateInput.value);
+      cell.classList.remove('started', 'not-started');
+      if (!s) {
+        cell.textContent = 'Not started';
+        cell.classList.add('not-started');
+      } else if (!rowDate) {
+        cell.textContent = '—';
+      } else if (rowDate < s) {
+        cell.textContent = 'Pre-treatment';
+        cell.classList.add('not-started');
+      } else if (e && rowDate > e) {
+        cell.textContent = 'Post-treatment';
+      } else {
+        cell.textContent = 'On treatment (Day ' + Math.round((rowDate - s) / MS_PER_DAY) + ')';
+        cell.classList.add('started');
+      }
+    });
+  }
+
+  document.querySelectorAll('#lesionOptions .option-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#lesionOptions .option-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      const lesion = this.dataset.lesion;
+      const data = LESION_DATA[lesion];
+      const fb = document.getElementById('lesionFeedback');
+      const detail = document.getElementById('lesionDetail');
+      const treatment = document.getElementById('treatmentDisplay');
+
+      fb.className = 'info-box success';
+      fb.innerHTML = `<strong>🔬 ${data.name}</strong> — Light chain restriction: <span class="pill ${data.pill}">Check biopsy IF</span>`;
+
+      detail.innerHTML = `
+        <div class="grid-2col">
+          <div class="info-box"><h4 style="color:#5c2d0e;"><i class="fas fa-microscope"></i> Pathology</h4><p style="font-size:0.85rem;">${data.pathology}</p></div>
+          <div class="info-box"><h4 style="color:#5c2d0e;"><i class="fas fa-search"></i> Workup</h4><p style="font-size:0.85rem;">${data.workup}</p></div>
+        </div>`;
+
+      const borderColor =
+        data.pill === 'red' ? '#c0392b' :
+        data.pill === 'orange' ? '#d4842e' :
+        data.pill === 'purple' ? '#7b4fa0' :
+        data.pill === 'blue' ? '#3a6b9e' :
+        data.pill === 'teal' ? '#1a7a6e' :
+        data.pill === 'gold' ? '#b8860b' : '#6b3a1f';
+
+      treatment.innerHTML = `
+        <div class="treatment-panel" style="border-left:4px solid ${borderColor};">
+          <h4><i class="fas fa-first-aid"></i> ${data.name} Treatment</h4>
+          ${data.treatment}
+        </div>`;
+    });
+  });
+
+  document.getElementById('loadDBdBtn').addEventListener('click', () => {
+    document.getElementById('loadDBdBtn').dataset.current = 'DBd';
+    setMeds('DBd');
+  });
+  document.getElementById('loadVCdBtn').addEventListener('click', () => {
+    document.getElementById('loadDBdBtn').dataset.current = 'VCd';
+    setMeds('VCd');
+  });
+  document.getElementById('loadRCDBtn').addEventListener('click', () => {
+    document.getElementById('loadDBdBtn').dataset.current = 'RCD';
+    setMeds('RCD');
+  });
+
+  document.getElementById('updateGanttBtn').addEventListener('click', () => {
+    document.querySelectorAll('.med-date-input').forEach(input => {
+      const idx = parseInt(input.dataset.idx);
+      const parsed = parseDateInput(input.value);
+      if (parsed) currentMeds[idx][input.dataset.field] = parsed;
+    });
+    updateGanttChart();
+  });
+
+  document.getElementById('resetMedsBtn').addEventListener('click', () => {
+    const currentRegimen = document.getElementById('loadDBdBtn').dataset.current || 'DBd';
+    setMeds(currentRegimen);
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    document.getElementById('loadDBdBtn').dataset.current = 'DBd';
+    document.getElementById('txnStartDate').value = '';
+    document.getElementById('txnEndDate').value = '';
+    document.getElementById('txnNotes').value = '';
+    treatmentStartDate = null;
+    treatmentEndDate = null;
+    refreshDurationAndStatus();
+    setMeds('DBd');
+    updateDualAxisChart();
+  });
+
+  document.getElementById('txnStartDate').addEventListener('change', refreshDurationAndStatus);
+  document.getElementById('txnEndDate').addEventListener('change', refreshDurationAndStatus);
+
+  document.getElementById('addRowBtn').addEventListener('click', () => {
+    const tbody = document.getElementById('followupTableBody');
+    const row = document.createElement('tr');
+    row.innerHTML = `<td contenteditable="true">New Visit</td>
+      <td><input type="date" style="width:120px;"></td>
+      <td class="txn-status-cell not-started">Not started</td>
+      <td contenteditable="true">--</td><td contenteditable="true">--</td><td contenteditable="true">--</td>
+      <td contenteditable="true">--</td><td contenteditable="true"><span class="pill" style="background:#95a5a6;">Pending</span></td>
+      <td contenteditable="true"><span class="pill" style="background:#95a5a6;">Pending</span></td>
+      <td><button class="btn-reset btn-delete-row" style="padding:0.2rem 0.6rem;font-size:0.7rem;"><i class="fas fa-trash"></i></button></td>`;
+    tbody.appendChild(row);
+    row.querySelectorAll('[contenteditable="true"]').forEach(c => c.addEventListener('blur', updateDualAxisChart));
+    const dateInput = row.querySelector('input[type="date"]');
+    if (dateInput) {
+      dateInput.addEventListener('change', () => {
+        refreshFollowupTreatmentStatus();
+        updateDualAxisChart();
+      });
+    }
+    row.querySelector('.btn-delete-row').addEventListener('click', function() {
+      row.remove();
+      updateDualAxisChart();
+      refreshFollowupTreatmentStatus();
+    });
+    updateDualAxisChart();
+    refreshFollowupTreatmentStatus();
+  });
+
+  document.querySelectorAll('.btn-delete-row').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.closest('tr').remove();
+      updateDualAxisChart();
+      refreshFollowupTreatmentStatus();
+    });
+  });
+  document.querySelectorAll('#followupTableBody [contenteditable="true"]').forEach(c => c.addEventListener('blur', updateDualAxisChart));
+
+  document.querySelectorAll('#followupTableBody input[type="date"]').forEach(inp => {
+    inp.addEventListener('change', () => {
+      refreshFollowupTreatmentStatus();
+      updateDualAxisChart();
+    });
+  });
+
+  // Smooth scroll for citation links
+  document.querySelectorAll('.cite').forEach(link => {
+    link.addEventListener('click', function(e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute('href'));
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Flash highlight
+        target.style.transition = 'background 0.4s';
+        target.style.background = '#fff8e8';
+        setTimeout(() => { target.style.background = ''; }, 1600);
+      }
+    });
+  });
+
+  setMeds('DBd');
+  const today = new Date();
+  document.getElementById('txnStartDate').value = toInputValue(today);
+  refreshDurationAndStatus();
+  updateDualAxisChart();
+  refreshFollowupTreatmentStatus();
+})();
+</script>
+</body>
+</html>
